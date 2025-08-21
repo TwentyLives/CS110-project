@@ -1,25 +1,68 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
 
-function App() {
+export default function AuthTest() {
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [response, setResponse] = useState("");
+
+  const handleRegister = async () => {
+    const res = await fetch("http://localhost:3002/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password }),
+    });
+    const data = await res.json();
+    setResponse(JSON.stringify(data));
+  };
+
+  const handleLogin = async () => {
+    const res = await fetch("http://localhost:3002/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    setResponse(JSON.stringify(data));
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div style={{ padding: "20px" }}>
+      <h2>Auth Test UI</h2>
+
+      <input
+        type="text"
+        placeholder="Username (register only)"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        style={{ display: "block", marginBottom: "10px" }}
+      />
+
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        style={{ display: "block", marginBottom: "10px" }}
+      />
+
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        style={{ display: "block", marginBottom: "10px" }}
+      />
+
+      <button onClick={handleRegister} style={{ marginRight: "10px" }}>
+        Register
+      </button>
+      <button onClick={handleLogin}>Login</button>
+
+      <div style={{ marginTop: "20px" }}>
+        <strong>Response:</strong>
+        <pre>{response}</pre>
+      </div>
     </div>
   );
 }
-
-export default App;
