@@ -3,13 +3,17 @@ const cors = require("cors");
 const { MongoClient } = require("mongodb");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
+const multer = require('multer');
+const cloudinary = require('./cloudinary');
+const fs = require("fs");
 
+const upload = multer({ dest: 'uploads/' });//creates a folder where it puts images to hold temporarily
 const app = express();
 const port = 3002;
 
-const url = "mongodb+srv://EventSnapTeam:CS110GROUPPSW@eventsnapdatabase.te31njv.mongodb.net/?retryWrites=true&w=majority&appName=EventSnapDatabase";
+const url = "mongodb+srv://dfria006:cs100@cluster0.w1u0atk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const client = new MongoClient(url);
-const dbName = "eventSnapDB";
+const dbName = "Project0";
 
 let db;
 
@@ -34,6 +38,45 @@ async function connectToDb() {
 connectToDb();
 
 // Put Code For Routes Here!
+
+// uploads image to cloudinary and stores the URL in mongodb
+// still needs to store other info like post_id, user_id, etc
+app.post("/upload", upload.single('image'), async (req, res) => {
+    try {
+    const filePath = req.file.path;
+
+    const result = await cloudinary.uploader.upload(filePath, {
+      folder: 'cs110-photo-storage', //folder in cloudinary to store images
+    });
+
+    fs.unlinkSync(filePath);
+     await db.collection("posts").insertOne({
+        url: result.secure_url, 
+        createdAt: new Date()
+    });
+
+    res.json({ url: result.secure_url });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Upload failed');
+  }  
+});
+
+//currently returns all posts just to test cloudinary 
+app.get("/posts", async (req, res) => {
+  try {
+    const posts = await db
+      .collection("posts")
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    res.json(posts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Failed to fetch posts");
+  }
+});
 
 app.post("/check-username", async (req, res) => {
     try {

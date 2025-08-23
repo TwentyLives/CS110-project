@@ -5,6 +5,7 @@ import { Navigate } from 'react-router';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Photos from './pages/photos';
 
 const PrivateRoute = ({ children }) => {
     // verify login info saved here using localStorage or something else
@@ -28,6 +29,7 @@ function App() {
                 />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/photos" element={<Photos />} />
             </Routes>
         </Router>
     );
