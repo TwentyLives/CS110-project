@@ -1,0 +1,87 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+}
+
+.login-page, 
+.register-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.login-content,
+.register-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1; 
+    padding: 20px;
+}
+ 
+.login-form, 
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; 
+    width: 100%;
+    max-width: 400px; 
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    border-radius: 10px;
+    background-color: white;
+}
+ 
+label {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%; 
+    box-sizing: border-box; 
+}
+ 
+input:focus {
+    border-color: #4CAF50; 
+    outline: none; 
+}
+ 
+button {
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%; 
+    transition: background-color 0.3s ease;
+}
+ 
+/* Login button */
+button[type="submit"] {
+    margin-top: 30px;
+    background-color: #4CAF50; 
+    color: white;
+}
+ 
+button[type="submit"]:hover {
+    background-color: #45a049; 
+}
+
+/* Register button */
+button[type="button"] {
+    background-color: #2196F3; 
+    color: white;
+}
+
+button[type="button"]:hover {
+    background-color: #0b7dda; 
+}

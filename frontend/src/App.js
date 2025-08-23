@@ -1,25 +1,36 @@
 import logo from './logo.svg';
 import './App.css';
+import { BrowserRouter as Router, Route, Routes } from 'react-router'; 
+import { Navigate } from 'react-router';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+
+const PrivateRoute = ({ children }) => {
+    // verify login info saved here using localStorage or something else
+    console.log("Ran private route!");
+    const login = true;
+    if(login){
+        return children;
+    } else {
+        return <Navigate to="/login"/>;
+    }
+};
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <Router>
+            <Routes>
+                <Route path='/' element={
+                    <PrivateRoute>
+                        <Home/>
+                    </PrivateRoute>}
+                />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+            </Routes>
+        </Router>
+    );
 }
 
 export default App;

@@ -8,8 +8,11 @@ const app = express();
 // 3. Define the port the server will run on
 const port = 3001;
 
+// only allow frontend to access it
 app.use(cors({
-    origin: 'http://localhost:3000'
+    origin: 'http://localhost:3000',
+    methods: 'GET,POST',
+    credentials: true,
 }));
 
 app.get('/', (reg, res) =>{
