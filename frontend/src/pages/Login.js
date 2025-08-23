@@ -9,18 +9,28 @@ function Login(){
     const [password, setPassword] = useState('');
     const navigate = useNavigate(); 
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
 
-        // check API credentials here to backend
+        try{
+            const response = await fetch('http://localhost:3002/login', {
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({username, password}),
+            });
 
-        console.log('Username: ', username);
-        console.log('Password: ', password);
-
-        // if login successful redirect to home page (check with backend)
-        // save login info so user doesn't have to login everytime if they choose to save login
-        if(true /*must change check*/){
-            navigate('/');
+            if(response.ok){
+                console.log('Login successful.');
+                navigate('/');
+            } else {
+                const errorData = await response.json();
+                alert(errorData.error || 'Login failed. Please try again.');
+            }
+        } catch(err) {
+            console.error('Login request failed: ', err);
+            alert('Could not connect to the server. Please try again later!');
         }
     };
 
