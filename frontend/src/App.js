@@ -1,68 +1,36 @@
-import { useState } from "react";
+import logo from './logo.svg';
+import './App.css';
+import { BrowserRouter as Router, Route, Routes } from 'react-router'; 
+import { Navigate } from 'react-router';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
-export default function AuthTest() {
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [response, setResponse] = useState("");
+const PrivateRoute = ({ children }) => {
+    // verify login info saved here using localStorage or something else
+    console.log("Ran private route!");
+    const login = true;
+    if(login){
+        return children;
+    } else {
+        return <Navigate to="/login"/>;
+    }
+};
 
-  const handleRegister = async () => {
-    const res = await fetch("http://localhost:3002/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password }),
-    });
-    const data = await res.json();
-    setResponse(JSON.stringify(data));
-  };
-
-  const handleLogin = async () => {
-    const res = await fetch("http://localhost:3002/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    setResponse(JSON.stringify(data));
-  };
-
-  return (
-    <div style={{ padding: "20px" }}>
-      <h2>Auth Test UI</h2>
-
-      <input
-        type="text"
-        placeholder="Username (register only)"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        style={{ display: "block", marginBottom: "10px" }}
-      />
-
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        style={{ display: "block", marginBottom: "10px" }}
-      />
-
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        style={{ display: "block", marginBottom: "10px" }}
-      />
-
-      <button onClick={handleRegister} style={{ marginRight: "10px" }}>
-        Register
-      </button>
-      <button onClick={handleLogin}>Login</button>
-
-      <div style={{ marginTop: "20px" }}>
-        <strong>Response:</strong>
-        <pre>{response}</pre>
-      </div>
-    </div>
-  );
+function App() {
+    return (
+        <Router>
+            <Routes>
+                <Route path='/' element={
+                    <PrivateRoute>
+                        <Home/>
+                    </PrivateRoute>}
+                />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+            </Routes>
+        </Router>
+    );
 }
+
+export default App;
