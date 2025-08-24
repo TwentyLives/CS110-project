@@ -11,7 +11,7 @@ const upload = multer({ dest: 'uploads/' });//creates a folder where it puts ima
 const app = express();
 const port = 3002;
 
-const url = "mongodb+srv://dfria006:cs100@cluster0.w1u0atk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const url = "mongodb+srv://EventSnapTeam:CS110GROUPPSW@eventsnapdatabase.te31njv.mongodb.net/?retryWrites=true&w=majority&appName=EventSnapDatabase";
 const client = new MongoClient(url);
 const dbName = "Project0";
 
