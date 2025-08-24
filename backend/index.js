@@ -1,11 +1,12 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
 const multer = require('multer');
 const cloudinary = require('./cloudinary');
 const fs = require("fs");
+const { create } = require("domain");
 
 const upload = multer({ dest: 'uploads/' });//creates a folder where it puts images to hold temporarily
 const app = express();
@@ -39,11 +40,85 @@ connectToDb();
 
 // Put Code For Routes Here!
 
+//post to an album - adds user and their post to the album entry 
+app.post("/albums/:albumID/upload",upload.single('image'), async (req, res) => {
+    try{
+        const albumID = req.params.albumID;
+        const { userId } = req.body; 
+        const filePath = req.file.path;
+
+         // Upload to Cloudinary
+        const result = await cloudinary.uploader.upload(filePath, {
+        folder: 'cs110-photo-storage'
+        });
+        fs.unlinkSync(filePath);// delete the file from server after upload
+        
+        const newPost = {
+            url: result.secure_url,
+            userId: new ObjectId(userId),
+            createdAt: new Date()
+        };
+        const update = await db.collection("albums").updateOne(
+            {_id: new ObjectId(albumID)},
+            { 
+                $addToSet: { participants: new ObjectId(userId) },
+                $push: { albumPosts: newPost }
+             } 
+        );
+
+        res.status(201).json({ message: "Post added to album successfully",
+            post: newPost
+        });
+    } catch (error){
+        console.error(error); 
+        res.status(500).send("Failed to add post to album");
+    } 
+})
+
+//get the album
+app.get("/albums/:userId", async (req, res) => {
+    try{
+        const userId = req.params.userId;
+
+        const albums = await db
+            .collection("albums")
+            .find({ participants: new ObjectId(userId) }) // find albums by userID
+            .sort({ createdAt: -1 }) // most recent first
+            .toArray();
+
+        res.json(albums);
+    }catch (error){
+        console.error(error); 
+        res.status(500).send("Failed to fetch albums");
+    }
+});
+//create a new album empty initially
+app.post("/albums", async (req, res) => {
+    try{
+        const { userId, albumTitle} = req.body; 
+
+        const album = {
+            userId: new ObjectId(userId),
+            Title: albumTitle,
+            albumPosts:[],
+            createdAt: new Date(),
+            participants: [new ObjectId(userId)] // only author initially
+        };
+
+        const result = await db.collection("albums").insertOne(album);
+
+        res.status(201).json({ message: "Album created successfully", albumId: result.insertedId });
+    } catch (error){
+        console.error(error); 
+        res.status(500).send("Failed to create album");
+    } 
+});
+
 // When user uploads an image 
 app.post("/upload", upload.single('image'), async (req, res) => {
     try {
     const filePath = req.file.path;
-    const {authorID, description, albumID, contestID } = req.body
+    const {userId, description, albumID, contestID } = req.body
 
     const result = await cloudinary.uploader.upload(filePath, {
       folder: 'cs110-photo-storage', //folder in cloudinary to store images
@@ -51,7 +126,7 @@ app.post("/upload", upload.single('image'), async (req, res) => {
 
     fs.unlinkSync(filePath);
      await db.collection("posts").insertOne({
-        authorID: new ObjectId(authorID),
+        userId: new ObjectId(userId),
         url: result.secure_url, 
         createdAt: new Date(),
         description: description || "", 
@@ -68,13 +143,13 @@ app.post("/upload", upload.single('image'), async (req, res) => {
 });
 
 //currently returns all posts of just one user
-app.get("/posts/:authorID", async (req, res) => {
+app.get("/posts/:userId", async (req, res) => {
   try {
-    const authorID = req.params.authorID;
+    const userId = req.params.userId;
 
     const posts = await db
       .collection("posts")
-      .find({ authorID: new ObjectId(authorID) })
+      .find({ userId: new ObjectId(userId) })
       .sort({ createdAt: -1 })
       .toArray();
 
@@ -84,9 +159,14 @@ app.get("/posts/:authorID", async (req, res) => {
     res.status(500).send("Failed to fetch posts");
   }
 });
+
+//seems to have a slight problem if there is only one post- probably the frontend look later
 app.get("/comments/:postId", async (req, res) => {
   try {
     const postId = req.params.postId;
+    if (!ObjectId.isValid(postId)) {
+        return res.status(400).json({ error: "Invalid postId" });
+    }
 
     const comments = await db
       .collection("comments")
