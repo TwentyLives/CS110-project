@@ -39,11 +39,11 @@ connectToDb();
 
 // Put Code For Routes Here!
 
-// uploads image to cloudinary and stores the URL in mongodb
-// still needs to store other info like post_id, user_id, etc
+// When user uploads an image 
 app.post("/upload", upload.single('image'), async (req, res) => {
     try {
     const filePath = req.file.path;
+    const {authorID, description, albumID, contestID } = req.body
 
     const result = await cloudinary.uploader.upload(filePath, {
       folder: 'cs110-photo-storage', //folder in cloudinary to store images
@@ -51,8 +51,13 @@ app.post("/upload", upload.single('image'), async (req, res) => {
 
     fs.unlinkSync(filePath);
      await db.collection("posts").insertOne({
+        authorID: new ObjectId(authorID),
         url: result.secure_url, 
-        createdAt: new Date()
+        createdAt: new Date(),
+        description: description || "", 
+        albumID: albumID ? new ObjectId(albumID) : null,
+        contestID: contestID ? new ObjectId(contestID) : null,
+        likes: 0
     });
 
     res.json({ url: result.secure_url });
@@ -62,12 +67,14 @@ app.post("/upload", upload.single('image'), async (req, res) => {
   }  
 });
 
-//currently returns all posts just to test cloudinary 
-app.get("/posts", async (req, res) => {
+//currently returns all posts of just one user
+app.get("/posts/:authorID", async (req, res) => {
   try {
+    const authorID = req.params.authorID;
+
     const posts = await db
       .collection("posts")
-      .find({})
+      .find({ authorID: new ObjectId(authorID) })
       .sort({ createdAt: -1 })
       .toArray();
 
@@ -75,6 +82,46 @@ app.get("/posts", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send("Failed to fetch posts");
+  }
+});
+app.get("/comments/:postId", async (req, res) => {
+  try {
+    const postId = req.params.postId;
+
+    const comments = await db
+      .collection("comments")
+      .find({ postId: new ObjectId(postId) })
+      .sort({ createdAt: 1 }) // oldest to newest
+      .toArray();
+
+    res.json(comments);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Failed to fetch comments");
+  }
+});
+
+app.post("/comments", async (req, res) => {
+  try {
+    const { postId, userId, text } = req.body;
+
+    const newComment = {
+      postId: new ObjectId(postId),
+      userId: new ObjectId(userId),
+      text,
+      createdAt: new Date(),
+    };
+
+    const result = await db.collection("comments").insertOne(newComment);
+
+    res.json({
+      message: "Comment created successfully",
+      commentId: result.insertedId, // MongoDB _id for the new comment
+      ...newComment
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to create comment" });
   }
 });
 
