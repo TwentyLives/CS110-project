@@ -4,7 +4,6 @@
   min-height: 100vh;
 }
 
-/* Content layout */
 .main-content {
   display: flex;
   flex: 1;
@@ -13,7 +12,6 @@
   background: #f4f6f8;
 }
 
-/* Left side */
 .event-info {
   width: 220px;
   background: #fff;
@@ -28,7 +26,6 @@
   margin-bottom: 12px;
 }
 
-/* Center album */
 .album-section {
   flex: 1;
   background: #fff;
@@ -63,7 +60,6 @@
   background: #2980b9;
 }
 
-/* Right side - Comments */
 .comments-section {
   display: flex;
   flex-direction: column;
@@ -86,10 +82,10 @@
   border-bottom: 1px solid #eee;
 }
 
-/* Comment input - stacked (Discord/Slack style) */
+
 .comment-input {
   display: flex;
-  flex-direction: column; /* stack textarea and button */
+  flex-direction: column;
   gap: 8px;
   width: 100%;
 }

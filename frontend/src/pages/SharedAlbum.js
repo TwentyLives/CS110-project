@@ -5,33 +5,32 @@ import "../styles/shared-album.css";
 
 function SharedAlbum() {
     const [albumId, setAlbumId] = useState(null);
-    const [eventInfo, setEventInfo] = useState(null);
+    const [album, setAlbum] = useState(null);
     const [photos, setPhotos] = useState([]);
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState("");
+    const [uploadFile, setUploadFile] = useState(null);
 
     useEffect(() => {
-        // when clicking on an shared album, save the id to session storage called "currentAlbumId"
         const storedAlbumId = sessionStorage.getItem("currentAlbumId");
-        if (!storedAlbumId) return;
+        const storedUserId = sessionStorage.getItem("userId");
+        if (!storedAlbumId || !storedUserId) return;
+
         setAlbumId(storedAlbumId);
 
         const fetchAlbum = async () => {
             try {
                 const res = await fetch(`http://localhost:3002/albums/${storedAlbumId}`);
-                if (!res.ok) {
-                    throw new Error(`Server error: ${res.status}`);
-                }
-                const data = await res.json();
+                if (!res.ok) throw new Error(`Server error: ${res.status}`);
 
-                setEventInfo({
-                    title: data.title,
-                    description: data.description,
-                    author: data.author,
-                    eventPhoto: data.eventPhoto
-                });
-                setPhotos(data.photos || []);
-                setComments(data.comments || []);
+                const albums = await res.json();
+                const foundAlbum = albums.find((a) => a._id === storedAlbumId);
+
+                if (foundAlbum) {
+                    setAlbum(foundAlbum);
+                    setPhotos(foundAlbum.albumPosts || []);
+                    setComments(foundAlbum.comments || []);
+                }
             } catch (err) {
                 console.error("Failed to fetch album:", err);
             }
@@ -40,27 +39,62 @@ function SharedAlbum() {
         fetchAlbum();
     }, []);
 
-    // Upload comment
+    const handleUploadPhoto = async () => {
+        if (!uploadFile || !albumId) return;
+
+        const storedUserId = sessionStorage.getItem("userId");
+        if (!storedUserId) {
+            alert("You must be logged in to upload.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("image", uploadFile);
+        formData.append("userId", storedUserId);
+
+        try {
+            const res = await fetch(`http://localhost:3002/albums/${albumId}/upload`, {
+                method: "POST",
+                body: formData,
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setPhotos((prev) => [...prev, data.post]);
+                setUploadFile(null);
+            } else {
+                console.error("Failed to upload image");
+            }
+        } catch (err) {
+            console.error("Error uploading photo:", err);
+        }
+    };
+
     const handleAddComment = async () => {
         if (newComment.trim() === "" || !albumId) return;
 
+        const storedUserId = sessionStorage.getItem("userId");
+        const storedUsername = sessionStorage.getItem("username");
+
         try {
-            const res = await fetch(`http://localhost:3002/albums/${albumId}/comments`, {
+            const res = await fetch(`http://localhost:3002/comments`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: newComment })
+                body: JSON.stringify({
+                    text: newComment,
+                    postId: albumId,
+                    userId: storedUserId,
+                    author: storedUsername
+                }),
             });
 
             if (res.ok) {
                 const savedComment = await res.json();
-                setComments([...comments, savedComment]);
+                setComments((prev) => [...prev, savedComment]);
                 setNewComment("");
-            } else {
-                const errorData = await res.json();
-                console.error("Error posting comment:", errorData.error || "Unknown error");
             }
         } catch (err) {
-            console.error("Error:", err);
+            console.error("Error adding comment:", err);
         }
     };
 
@@ -69,41 +103,34 @@ function SharedAlbum() {
             <Header />
 
             <div className="main-content">
-                {/* Event Info */}
                 <aside className="event-info">
-                    {eventInfo ? (
+                    {album ? (
                         <>
-                            <img
-                                src={eventInfo.eventPhoto}
-                                alt="Event Cover"
-                                className="event-photo"
-                            />
-                            <h2>{eventInfo.title}</h2>
-                            <div className="event-author">
-                                <img
-                                    src="https://placehold.co/50x50?text=👤"
-                                    alt="Author Avatar"
-                                    className="author-avatar"
-                                />
-                                <span className="author-name">
-                                    Posted by {eventInfo.author}
-                                </span>
-                            </div>
-                            <p>{eventInfo.description}</p>
+                            <h2>{album.Title}</h2>
+                            <p>{album.description}</p>
+                            <p>Author: {album.author}</p>
                         </>
                     ) : (
-                        <p>Loading event...</p>
+                        <p>Loading album...</p>
                     )}
                 </aside>
 
-                {/* Album */}
                 <section className="album-section">
                     <h3>Shared Album</h3>
+                    <div className="upload-box">
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setUploadFile(e.target.files[0])}
+                        />
+                        <button onClick={handleUploadPhoto}>Upload</button>
+                    </div>
+
                     <div className="photo-grid">
                         {photos.map((photo, idx) => (
                             <img
                                 key={idx}
-                                src={photo}
+                                src={photo.url}
                                 alt={`Album ${idx}`}
                                 className="album-photo"
                             />
@@ -111,13 +138,12 @@ function SharedAlbum() {
                     </div>
                 </section>
 
-                {/* Comments */}
                 <aside className="comments-section">
                     <h3>Comments</h3>
                     <div className="comments-list">
-                        {comments.map((c) => (
-                            <div key={c.id} className="comment">
-                                <strong>{c.user}:</strong> {c.text}
+                        {comments.map((c, idx) => (
+                            <div key={idx} className="comment">
+                                <strong>{c.author}:</strong> {c.text}
                             </div>
                         ))}
                     </div>
@@ -129,10 +155,10 @@ function SharedAlbum() {
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
                         />
+                        <button className="comment-send-btn" onClick={handleAddComment}>
+                            Send
+                        </button>
                     </div>
-                    <button className="comment-send-btn" onClick={handleAddComment}>
-                        Send
-                    </button>
                 </aside>
             </div>
 
