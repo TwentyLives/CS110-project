@@ -14,7 +14,9 @@ const PrivateRoute = ({ children }) => {
     const token = localStorage.getItem("eventSnapUser");
     const adminKey = sessionStorage.getItem("adminKey");
     console.log("Ran private route!");
-    if (token || adminKey) {
+    console.log(children.type);
+    // only allow admin to access AlbumPage and no other pages that use private route
+    if (token || (adminKey && children.type.name === "AlbumPage")) {
         return children;
     } else {
         return <Navigate to="/login" />;

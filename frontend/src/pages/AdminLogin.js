@@ -18,6 +18,8 @@ function AdminLogin() {
 
             if (response.ok) {
                 const data = await response.json();
+                // ensure to log out regular user logged in to prevent interference
+                localStorage.removeItem("eventSnapUser");
                 // store the key in sessionStorage
                 // gets deleted as soon as the tab/window is closed
                 sessionStorage.setItem("adminKey", data.adminKey);
