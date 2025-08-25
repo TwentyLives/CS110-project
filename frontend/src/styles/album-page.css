@@ -1,0 +1,295 @@
+
+.album-page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.album-page-main {
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2rem;
+    flex-grow: 1;
+    box-sizing: border-box;
+}
+
+
+.album-title-block {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.album-title-block h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: #1f2937;
+}
+
+.album-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+
+.add-participants-button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    border: none;
+    background-color: #4f46e5;
+    color: white;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.add-participants-button:hover {
+    background-color: #4338ca;
+}
+
+.album-navigation {
+    margin-bottom: 1.5rem;
+}
+
+.back-button {
+    background: none;
+    border: none;
+    color: #555;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+
+.album-content-grid {
+    display: grid;
+    grid-template-columns: 250px 1fr 300px;
+    gap: 2rem;
+    align-items: start;
+}
+
+.album-sidebar {
+    background-color: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: 8px;
+    height: fit-content;
+}
+
+.album-sidebar h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
+}
+
+
+.host-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.avatar-initial.large {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+    border-radius: 50%;
+    background-color: #7f9cf5;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.host-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+
+.photo-viewer {
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+.photo-viewer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    flex-shrink: 0;
+}
+
+.photo-viewer-header h3 {
+    margin: 0;
+    padding-right: 15px;
+}
+
+.add-photo-button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #10b981;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    width: 100%;
+}
+
+.grid-photo {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.empty-album-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #888;
+    flex-grow: 1;
+}
+
+
+.comments-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+}
+
+.comment {
+    margin-bottom: 0.75rem;
+}
+
+.comment-input-area textarea {
+    width: 100%;
+    box-sizing: border-box;
+    height: 80px;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: vertical;
+    margin-bottom: 0.5rem;
+}
+
+.comment-input-area button {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #4f46e5;
+    color: white;
+    cursor: pointer;
+}
+
+
+.participants-section {
+    margin-top: 2rem;
+}
+
+.participants-list {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.participant-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 5px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.2s;
+}
+
+.participant-item:hover {
+    background-color: #eef2ff;
+}
+
+.avatar-initial.small {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+}
+
+.tagged-users {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tagged-user-pill {
+    background-color: #e0e7ff;
+    color: #4338ca;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.remove-tag-button {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: #4338ca;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.search-result-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+}
+
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background-color: #f5f5f5;
+}
+
+.album-creation-date {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 1rem;
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+}
