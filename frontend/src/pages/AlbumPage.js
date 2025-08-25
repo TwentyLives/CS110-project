@@ -199,9 +199,17 @@ function AlbumPage() {
                     <div className="album-sidebar left-sidebar">
                         <h3>Host</h3>
                         <div className="host-info">
-                            <div className="avatar-initial large">
-                                {album.authorInfo.username.charAt(0).toUpperCase()}
-                            </div>
+                            {album.authorInfo.avatarUrl ? (
+                                <img
+                                    src={album.authorInfo.avatarUrl}
+                                    alt={album.authorInfo.username}
+                                    className="avatar-image large"
+                                />
+                            ) : (
+                                <div className="avatar-initial large">
+                                    {album.authorInfo.username.charAt(0).toUpperCase()}
+                                </div>
+                            )}
                             <span className="host-name">{album.authorInfo.username}</span>
                         </div>
 
@@ -214,7 +222,13 @@ function AlbumPage() {
                             <div className="participants-list">
                                 {album.participantInfo.map((p) => (
                                     <Link to={`/profile/${p._id}`} key={p._id} className="participant-item">
-                                        <div className="avatar-initial small">{p.username.charAt(0).toUpperCase()}</div>
+                                        {p.avatarUrl ? (
+                                            <img src={p.avatarUrl} alt={p.username} className="avatar-image small" />
+                                        ) : (
+                                            <div className="avatar-initial small">
+                                                {p.username.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
                                         <span>{p.username}</span>
                                     </Link>
                                 ))}
