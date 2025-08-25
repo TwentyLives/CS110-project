@@ -1,0 +1,144 @@
+.contest-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  gap: 20px;
+  padding: 20px;
+  background: #f4f6f8;
+}
+
+.event-info {
+  width: 220px;
+  background: #fff;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.contest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contest-btn {
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #e0e0e0;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.contest-btn.active {
+  background: #3498db;
+  color: white;
+}
+
+.contest-btn:hover {
+  background: #d0d0d0;
+}
+
+.album-section {
+  flex: 1;
+  background: #fff;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.album-photo {
+  width: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.entry-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.like-btn {
+  margin-top: 6px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #f0f0f0;
+}
+
+.comments-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 320px;
+  background: #fff;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.comments-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  max-height: 300px;
+}
+
+.comment {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.comment-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.comment-input textarea {
+  resize: none;
+  min-height: 60px;
+  max-height: 150px;
+  padding: 12px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  outline: none;
+  line-height: 1.4;
+  overflow-y: auto;
+  transition: border 0.2s ease;
+}
+
+.comment-input textarea:focus {
+  border-color: #3498db;
+}
+
+.comment-send-btn {
+  align-self: flex-end;
+  padding: 10px 16px;
+  border: none;
+  background: #3498db;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.comment-send-btn:hover {
+  background: #2980b9;
+}
