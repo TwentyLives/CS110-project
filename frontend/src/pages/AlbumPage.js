@@ -17,6 +17,9 @@ function AlbumPage() {
     const [comments, setComments] = useState([]);
     const [newCommentText, setNewCommentText] = useState("");
 
+    const [openCommentMenu, setOpenCommentMenu] = useState(null); // track which menu is open
+    const isAdmin = sessionStorage.getItem("adminKey"); // check if the user is an admin
+
     const [isViewerOpen, setIsViewerOpen] = useState(false);
     const [viewerStartIndex, setViewerStartIndex] = useState(0);
 
@@ -86,6 +89,29 @@ function AlbumPage() {
             }
         } catch (err) {
             console.error("Error posting comment:", err);
+        }
+    };
+
+    // delete comment for admins
+    const handleDeleteComment = async (commentId) => {
+        if (window.confirm("Are you sure you want to delete this comment?")) {
+            try {
+                const response = await fetch(`http://localhost:3002/admin/comments/${commentId}`, {
+                    method: "DELETE",
+                    headers: {
+                        "x-admin-key": isAdmin, // send the admin key for authorization
+                    },
+                });
+
+                if (response.ok) {
+                    // remove the comment from the state to update the UI instantly
+                    setComments(comments.filter((c) => c._id !== commentId));
+                } else {
+                    alert("Failed to delete comment.");
+                }
+            } catch (err) {
+                console.error("Error deleting comment:", err);
+            }
         }
     };
 
@@ -275,9 +301,36 @@ function AlbumPage() {
                         <h3>Comments</h3>
                         <div className="comments-list">
                             {comments.length > 0 ? (
-                                comments.map((comment, index) => (
-                                    <div key={index} className="comment">
-                                        <b>{comment.userInfo.username}:</b> {comment.text}
+                                comments.map((comment) => (
+                                    <div key={comment._id} className="comment-container">
+                                        <div className="comment">
+                                            <b>{comment.userInfo.username}:</b> {comment.text}
+                                        </div>
+                                        {/* admin only delete menu */}
+                                        {isAdmin && (
+                                            <div className="comment-menu">
+                                                <button
+                                                    className="comment-menu-button"
+                                                    onClick={() =>
+                                                        setOpenCommentMenu(
+                                                            openCommentMenu === comment._id ? null : comment._id
+                                                        )
+                                                    }
+                                                >
+                                                    &#x22EE;
+                                                </button>
+                                                {openCommentMenu === comment._id && (
+                                                    <div className="comment-menu-dropdown">
+                                                        <button
+                                                            className="delete-comment-button"
+                                                            onClick={() => handleDeleteComment(comment._id)}
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 ))
                             ) : (

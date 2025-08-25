@@ -41,7 +41,66 @@ async function connectToDb() {
 }
 connectToDb();
 
-// Put Code For Routes Here!
+// admin authorization
+const isAdmin = (req, res, next) => {
+    // check for secret key in the request headers
+    const adminKey = req.headers["x-admin-key"];
+    if (adminKey && adminKey === process.env.ADMIN_SECRET_KEY) {
+        next(); // if key is correct, then continue
+    } else {
+        res.status(401).json({ error: "Unauthorized: Admin Access Required" });
+    }
+};
+
+// admin routes
+app.post("/admin/login", async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const admin = await db.collection("admins").findOne({ username });
+
+        if (admin && (await bcrypt.compare(password, admin.password))) {
+            // send back the secret key to the frontend
+            res.json({ message: "Admin login successful", adminKey: process.env.ADMIN_SECRET_KEY });
+            /* not entirely safe in production, likely better to use cookies or other methods of security */
+        } else {
+            res.status(401).json({ error: "Invalid admin credentials" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: "Admin login failed" });
+    }
+});
+
+// get all albums for admin dashboard
+app.get("/admin/albums", isAdmin, async (req, res) => {
+    try {
+        const albums = await db.collection("albums").find({}).sort({ createdAt: -1 }).toArray();
+        res.json(albums);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch albums" });
+    }
+});
+
+// delete an album
+app.delete("/admin/albums/:albumId", isAdmin, async (req, res) => {
+    try {
+        const { albumId } = req.params;
+        await db.collection("albums").deleteOne({ _id: new ObjectId(albumId) });
+        res.status(200).json({ message: "Album deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to delete album" });
+    }
+});
+
+// delete a comment within an album
+app.delete("/admin/comments/:commentId", isAdmin, async (req, res) => {
+    try {
+        const { commentId } = req.params;
+        await db.collection("comments").deleteOne({ _id: new ObjectId(commentId) });
+        res.status(200).json({ message: "Comment deleted succesfluly" });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to delete comment" });
+    }
+});
 
 // get a user profile data (info and albums)
 app.get("/profile/:userId", async (req, res) => {
@@ -447,7 +506,7 @@ app.post("/login", async (req, res) => {
             expiresIn: "30d",
         });
 
-        res.json({ message: "Login successful", token: token, userId: user._id });
+        res.json({ message: "Login successful", token: token, userId: user._id, avatarUrl: user.avatarUrl });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Login failed" });

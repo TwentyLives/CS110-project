@@ -1,85 +1,66 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import "../styles/login-styles.css";
-import { useAuth } from "../context/AuthContext";
 
-function Login() {
-    const { login } = useAuth();
+function AdminLogin() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
-
         try {
-            const response = await fetch("http://localhost:3002/login", {
+            const response = await fetch("http://localhost:3002/admin/login", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
             });
 
             if (response.ok) {
-                const data = await response.json(); // get response data
-                login({ token: data.token, username: username, id: data.userId, avatarUrl: data.avatarUrl });
-                console.log("Login successful.");
-                navigate("/");
+                const data = await response.json();
+                // store the key in sessionStorage
+                // gets deleted as soon as the tab/window is closed
+                sessionStorage.setItem("adminKey", data.adminKey);
+                navigate("/admin/dashboard");
             } else {
-                const errorData = await response.json();
-                alert(errorData.error || "Login failed. Please try again.");
+                alert("Invalid admin credentials.");
             }
         } catch (err) {
-            console.error("Login request failed: ", err);
-            alert("Could not connect to the server. Please try again later!");
+            console.error("Admin login failed:", err);
+            alert("Could not connect to the server.");
         }
-    };
-
-    const handleRegister = (e) => {
-        navigate("/register"); // go to register page if user clicks register
     };
 
     return (
         <div className="login-page">
-            <Header />
             <main className="login-content">
                 <form onSubmit={handleLogin} className="login-form">
-                    <h1>Log in</h1>
+                    <h1>Admin Login</h1>
                     <div className="input-container">
                         <label htmlFor="username">Username</label>
                         <input
-                            type="text"
                             id="username"
+                            type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
                         />
                     </div>
-
                     <div className="input-container">
                         <label htmlFor="password">Password</label>
                         <input
-                            type="password"
                             id="password"
+                            type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
                     </div>
-
                     <button type="submit">Login</button>
-                    <button type="button" onClick={handleRegister}>
-                        Create an account
-                    </button>
                 </form>
             </main>
-
-            <Footer />
         </div>
     );
 }
 
-export default Login;
+export default AdminLogin;

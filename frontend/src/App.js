@@ -5,18 +5,25 @@ import { Navigate } from "react-router";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Photos from "./pages/photos";
 import AlbumPage from "./pages/AlbumPage";
 import ProfilePage from "./pages/ProfilePage";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const PrivateRoute = ({ children }) => {
     const token = localStorage.getItem("eventSnapUser");
+    const adminKey = sessionStorage.getItem("adminKey");
     console.log("Ran private route!");
-    if (token) {
+    if (token || adminKey) {
         return children;
     } else {
         return <Navigate to="/login" />;
     }
+};
+
+const AdminRoute = ({ children }) => {
+    const adminKey = sessionStorage.getItem("adminKey");
+    return adminKey ? children : <Navigate to="/admin/login" />;
 };
 
 function App() {
@@ -49,6 +56,16 @@ function App() {
                 />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route
+                    path="/admin/dashboard"
+                    element={
+                        <AdminRoute>
+                            <AdminDashboard />
+                        </AdminRoute>
+                    }
+                />
             </Routes>
         </Router>
     );
