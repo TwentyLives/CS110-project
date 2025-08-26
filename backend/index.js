@@ -52,6 +52,137 @@ const isAdmin = (req, res, next) => {
     }
 };
 
+//Follow system routes
+//follow a user and add them to the following list of the user- collection "users" field "following"
+app.post("/follow", async (req, res) => {
+    try{
+        const { userId, followId } = req.body;
+
+        // Check if both users exist
+        const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+        const userToFollow = await db.collection("users").findOne({ _id: new ObjectId(followId) });
+
+        if (!user || !userToFollow) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Prevent following oneself
+        if (userId === followId) {
+            return res.status(400).json({ error: "You cannot follow yourself" });
+        }
+
+        // Add followId to user's following list if not already present
+        const updateResult = await db.collection("users").updateOne(
+            { _id: new ObjectId(userId) },
+            { $addToSet: { following: new ObjectId(followId) } } // addToSet prevents duplicates
+        );
+
+        if (updateResult.modifiedCount === 0) {
+            return res.status(200).json({ message: "Already following this user" });
+        }
+
+        res.status(200).json({ message: "Successfully followed the user" });
+    }
+    catch(error){
+        console.error("Failed to follow user:", error);
+        res.status(500).json({ error: "Failed to follow user" });
+    }
+});
+
+// gets the list of users that the user is following - used in profile page to show who they follow
+app.get("/following/:userId", async (req, res) => {
+   try{
+         const { userId } = req.params;
+    
+         if (!ObjectId.isValid(userId)) {
+              return res.status(400).json({ error: "Invalid user ID format" });
+         }
+    
+         const user = await db.collection("users").findOne(
+              { _id: new ObjectId(userId) },
+              { projection: { following: 1 } } // only get following field
+         );
+    
+         if (!user) {
+              return res.status(404).json({ error: "User not found" });
+         }
+    
+         // get details of each followed user
+         // may not need this many detail, could just use userID-not sure how frontend wants it
+         const followingDetails = await db
+              .collection("users")
+              .find({ _id: { $in: user.following || [] } }) 
+              .project({ username: 1, avatarUrl: 1 }) // only get username and avatarUrl
+              .toArray();
+    
+         res.json(followingDetails);
+   }
+   catch(error){
+        console.error("Failed to fetch following:", error);
+        res.status(500).json({ error: "Failed to fetch following" });
+   }
+});
+//recommend users to follow - friend of a friend system
+app.get("/recommendations/:userId", async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!ObjectId.isValid(userId)) {
+            return res.status(400).json({ error: "Invalid user ID format" });
+        }
+
+        // find the user and their following list
+        const user = await db.collection("users").findOne(
+            { _id: new ObjectId(userId) },
+            { projection: { following: 1 } }
+        );
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const alreadyFollowing = user.following || [];
+
+        //get all "friends" and their following lists
+        const friends_of_friends = await db.collection("users").find(
+            { _id: { $in: alreadyFollowing } },
+            { projection: { following: 1 } }
+        ).toArray();
+
+        // collect all "friends of friends"
+        let recommendationsSet = new Set();
+        friends_of_friends.forEach(friend => {
+            if (friend.following) {
+                friend.following.forEach(fid => recommendationsSet.add(fid.toString()));
+            }
+        });
+
+        //  remove already followed users and self
+        recommendationsSet.delete(userId); // don’t recommend yourself
+        alreadyFollowing.forEach(fid => recommendationsSet.delete(fid.toString()));
+
+        //  turn into array of ObjectIds
+        const recommendationIds = Array.from(recommendationsSet).map(id => new ObjectId(id));
+
+        if (recommendationIds.length === 0) {
+            return res.json([]); // no recommendations
+        }
+
+        // fetch details of recommended users
+        const recommendedUsers = await db.collection("users")
+            .find({ _id: { $in: recommendationIds } })
+            .project({ username: 1, avatarUrl: 1 })
+            .limit(10)
+            .toArray();
+
+        res.json(recommendedUsers);
+
+    } catch (error) {
+        console.error("Failed to get recommendations:", error);
+        res.status(500).json({ error: "Failed to get recommendations" });
+    }
+});
+
 // admin routes
 app.post("/admin/login", async (req, res) => {
     try {

@@ -9,6 +9,7 @@ import AlbumPage from "./pages/AlbumPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import Friends from './pages/Friends';
 
 const PrivateRoute = ({ children }) => {
     const token = localStorage.getItem("eventSnapUser");
@@ -58,7 +59,7 @@ function App() {
                 />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-
+                <Route path="/friends" element={<Friends />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route
                     path="/admin/dashboard"
