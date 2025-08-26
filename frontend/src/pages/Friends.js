@@ -1,190 +1,187 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { useAuth } from "../context/AuthContext";
 import "../styles/friends.css";
 
-function FriendsPage() {
-  const [friends, setFriends] = useState([]);
-  const [invites, setInvites] = useState([]);
+function Friends() {
+  const { user } = useAuth();
+
+  const [following, setFollowing] = useState([]);
+  const [followers, setFollowers] = useState([]);
   const [recs, setRecs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!user || !user.id) {
+      setIsLoading(false);
+      return;
+    }
+
     const fetchAll = async () => {
+      setIsLoading(true);
       try {
-        const [friendsRes, invitesRes, recsRes] = await Promise.all([
-          fetch(`http://localhost:3002/api/friends/curr`),
-          fetch(`http://localhost:3002/api/friends/invites`),
-          fetch(`http://localhost:3002/api/friends/recommends`),
+        setError(null);
+
+        const [followingRes, followersRes, recsRes] = await Promise.all([
+          fetch(`http://localhost:3002/following/${user.id}`),
+          fetch(`http://localhost:3002/followers/${user.id}`),
+          fetch(`http://localhost:3002/recommendations/${user.id}`),
         ]);
 
-        const [friendsData, invitesData, recsData] = await Promise.all([
-          friendsRes.json(),
-          invitesRes.json(),
+        if (!followingRes.ok || !followersRes.ok || !recsRes.ok) {
+          throw new Error("One or more requests failed");
+        }
+
+        const [followingData, followersData, recsData] = await Promise.all([
+          followingRes.json(),
+          followersRes.json(),
           recsRes.json(),
         ]);
 
-        setFriends(friendsData);
-        setInvites(invitesData);
+        setFollowing(followingData);
+        setFollowers(followersData);
         setRecs(recsData);
       } catch (err) {
-        console.error("Failed to fetch friends data:", err);
+        console.error("Failed to fetch follow data:", err);
+        setError("Couldn't fetch data. Please try again later.");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchAll();
-  }, []);
+  }, [user]);
 
-  const handleRemoveFriend = async (id) => {
-    try {
-      const res = await fetch(`http://localhost:3002/api/friends/remove/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setFriends(friends.filter((f) => f.id !== id));
-      }
-    } catch (err) {
-      console.error("Error removing friend:", err);
-    }
-  };
+  const handleFollow = async (targetId) => {
+    if (!user || !user.id) return;
 
-  const handleAcceptInvite = async (id) => {
     try {
-      const res = await fetch(`http://localhost:3002/api/friends/accept/${id}`, {
+      const res = await fetch(`http://localhost:3002/follow`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, followId: targetId }),
       });
+
       if (res.ok) {
-        const accepted = invites.find((inv) => inv.id === id);
-        if (accepted) {
-          setFriends([...friends, accepted]);
-          setInvites(invites.filter((inv) => inv.id !== id));
+        const followedUser = recs.find((r) => r.id === targetId);
+        if (followedUser) {
+          setFollowing((prev) => [...prev, followedUser]);
+          setRecs((prev) => prev.filter((r) => r.id !== targetId));
         }
+      } else {
+        console.warn("Follow request failed");
       }
     } catch (err) {
-      console.error("Error accepting invite:", err);
+      console.error("Error following user:", err);
     }
   };
 
-  const handleIgnoreInvite = async (id) => {
+  const handleUnfollow = async (targetId) => {
+    if (!user || !user.id) return;
+
     try {
-      const res = await fetch(`/http://localhost:3002/api/friends/ignore/${id}`, {
+      const res = await fetch(`http://localhost:3002/unfollow`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, unfollowId: targetId }),
       });
+
       if (res.ok) {
-        setInvites(invites.filter((inv) => inv.id !== id));
+        setFollowing((prev) => prev.filter((f) => f.id !== targetId));
+      } else {
+        console.warn("Unfollow request failed");
       }
     } catch (err) {
-      console.error("Error ignoring invite:", err);
+      console.error("Error unfollowing user:", err);
     }
   };
 
-  const handleRequestFriend = async (id) => {
+  const handleRemoveFollower = async (followerId) => {
+    if (!user || !user.id) return;
+
     try {
-      const res = await fetch(`/http://localhost:3002/friends/request/${id}`, {
+      const res = await fetch("http://localhost:3002/remove", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, removeId: followerId }),
       });
+
       if (res.ok) {
-        setRecs(recs.filter((r) => r.id !== id));
+        setFollowers((prev) => prev.filter((f) => f.id !== followerId));
+      } else {
+        console.warn("Remove follower request failed");
       }
     } catch (err) {
-      console.error("Error requesting friend:", err);
+      console.error("Error removing follower:", err);
     }
   };
 
-  if (isLoading) {
-    return <div>Loading friends...</div>;
-  }
+  const renderUserCard = (p, showFollowButton = false, showUnfollowButton = false, showRemoveButton = false) => {
+    const hasAvatar = p.pfp && p.pfp.trim() !== "";
+
+    return (
+      <div key={p.id} className="friend-card">
+        {hasAvatar ? (
+          <img src={p.pfp} alt={p.username || p.name} className="avatar-image small" />
+        ) : (
+          <div className="avatar-initial small">{(p.username || p.name).charAt(0).toUpperCase()}</div>
+        )}
+        <div className="friend-info">
+          <span>{p.username || p.name}</span>
+        </div>
+        <div className="friend-actions">
+          {showFollowButton && (
+            <button className="request-btn" onClick={() => handleFollow(p.id)}>Follow</button>
+          )}
+          {showUnfollowButton && (
+            <button className="request-btn" onClick={() => handleUnfollow(p.id)}>Unfollow</button>
+          )}
+          {showRemoveButton && (
+            <button className="request-btn remove" onClick={() => handleRemoveFollower(p.id)}>Remove</button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  if (!user) return <div>Loading user info...</div>;
+  if (isLoading) return <div>Loading follow data...</div>;
 
   return (
     <div className="friends-page-container">
       <Header />
       <main className="main-content">
-        {/* Current Friends */}
+        {error && <p className="error">{error}</p>}
+
+        {/* Following */}
         <div className="friends-column">
-          <h3>Current Friends</h3>
+          <h3>Following</h3>
           <div className="friends-list">
-            {friends.length > 0 ? (
-              friends.map((f) => (
-                <div key={f.id} className="friend-card">
-                  <img src={f.pfp || "default-pfp.png"} alt={f.name} />
-                  <div className="friend-info">
-                    <span>{f.name}</span>
-                  </div>
-                  <div className="friend-actions">
-                    <button
-                      className="remove-btn"
-                      onClick={() => handleRemoveFriend(f.id)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>No friends yet.</p>
-            )}
+            {following.length
+              ? following.map((f) => renderUserCard(f, false, true))
+              : <p>No following data.</p>}
           </div>
         </div>
 
-        {/* Invites */}
+        {/* Followers */}
         <div className="friends-column">
-          <h3>Invites</h3>
+          <h3>Followers</h3>
           <div className="friends-list">
-            {invites.length > 0 ? (
-              invites.map((inv) => (
-                <div key={inv.id} className="friend-card">
-                  <img src={inv.pfp || "default-pfp.png"} alt={inv.name} />
-                  <div className="friend-info">
-                    <span>{inv.name}</span>
-                  </div>
-                  <div className="friend-actions">
-                    <button
-                      className="accept-btn"
-                      onClick={() => handleAcceptInvite(inv.id)}
-                    >
-                      Accept
-                    </button>
-                    <button
-                      className="ignore-btn"
-                      onClick={() => handleIgnoreInvite(inv.id)}
-                    >
-                      Ignore
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>No invites.</p>
-            )}
+            {followers.length
+              ? followers.map((f) => renderUserCard(f, false, false, true))
+              : <p>No followers data.</p>}
           </div>
         </div>
 
         {/* Recommendations */}
         <div className="friends-column">
-          <h3>Recommended Friends</h3>
+          <h3>Recommended</h3>
           <div className="friends-list">
-            {recs.length > 0 ? (
-              recs.map((r) => (
-                <div key={r.id} className="friend-card">
-                  <img src={r.pfp || "default-pfp.png"} alt={r.name} />
-                  <div className="friend-info">
-                    <span>{r.name}</span>
-                  </div>
-                  <div className="friend-actions">
-                    <button
-                      className="request-btn"
-                      onClick={() => handleRequestFriend(r.id)}
-                    >
-                      Request
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>No recommendations.</p>
-            )}
+            {recs.length
+              ? recs.map((r) => renderUserCard(r, true))
+              : <p>No recommendations available.</p>}
           </div>
         </div>
       </main>
@@ -193,4 +190,4 @@ function FriendsPage() {
   );
 }
 
-export default FriendsPage;
+export default Friends;
