@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import SharedAlbum from './pages/SharedAlbum';
 import Contest from './pages/Contest';
+import Friends from './pages/Friends';
 
 const PrivateRoute = ({ children }) => {
     // verify login info saved here using localStorage or something else
@@ -32,6 +33,7 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/sharedalbum" element={<SharedAlbum />} />
                 <Route path="/contest" element={<Contest />} />
+                <Route path="/friends" element={<Friends />} />
             </Routes>
         </Router>
     );
