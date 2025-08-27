@@ -155,31 +155,35 @@ function AlbumPage() {
 
     // handle adding a new photo
     const handleAddPhoto = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
+        const files = event.target.files; // this is now a list of files
+        if (!files || files.length === 0) return;
 
-        const formData = new FormData();
-        formData.append("image", file);
-        formData.append("userId", user.id);
+        // loop through each selected file and upload it
+        for (const file of files) {
+            const formData = new FormData();
+            formData.append("image", file);
+            formData.append("userId", user.id);
 
-        try {
-            const response = await fetch(`http://localhost:3002/albums/${albumId}/upload`, {
-                method: "POST",
-                body: formData,
-            });
+            try {
+                const response = await fetch(`http://localhost:3002/albums/${albumId}/upload`, {
+                    method: "POST",
+                    body: formData,
+                });
 
-            if (response.ok) {
-                const data = await response.json();
-                // update the album state to instantly show the nwe photo
-                setAlbum((prevAlbum) => ({
-                    ...prevAlbum,
-                    albumPosts: [...prevAlbum.albumPosts, data.post],
-                }));
-            } else {
-                alert("Failed to upload photo.");
+                if (response.ok) {
+                    const data = await response.json();
+                    // update the album state after each successful upload
+                    // to show photos appearing one by one
+                    setAlbum((prevAlbum) => ({
+                        ...prevAlbum,
+                        albumPosts: [...prevAlbum.albumPosts, data.post],
+                    }));
+                } else {
+                    alert(`Failed to upload ${file.name}.`);
+                }
+            } catch (err) {
+                console.error(`Error uploading ${file.name}:`, err);
             }
-        } catch (err) {
-            console.error("Error uploading photo:", err);
         }
     };
 
@@ -270,6 +274,7 @@ function AlbumPage() {
                             onChange={handleAddPhoto}
                             style={{ display: "none" }}
                             accept="image/*"
+                            multiple // allows selecting multiple files
                         />
                         <div className="photo-viewer-header">
                             <h3>Photos</h3>
