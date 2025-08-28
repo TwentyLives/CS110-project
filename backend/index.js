@@ -612,6 +612,16 @@ app.post("/albums/:albumID/upload", upload.single("image"), async (req, res) => 
         const { userId } = req.body;
         const filePath = req.file.path;
 
+        // find the album
+        const album = await db.collection("albums").findOne({ _id: new ObjectId(albumId) });
+
+        // check if the user trying to upload is a participant
+        const isParticipant = album.participants.some((p) => p.toString() === userId);
+
+        if (!isParticipant) {
+            return res.status(403).json({ error: "Forbidden: You are not a participant of this album." });
+        }
+
         // Upload to Cloudinary
         const result = await cloudinary.uploader.upload(filePath, {
             folder: "cs110-photo-storage",

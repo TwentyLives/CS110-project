@@ -28,6 +28,9 @@ function AlbumPage() {
     const [searchResults, setSearchResults] = useState([]);
     const [usersToAdd, setUsersToAdd] = useState([]);
 
+    // check if current user is participant
+    const isParticipant = album?.participantInfo.some((p) => p._id === user.id);
+
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -218,9 +221,11 @@ function AlbumPage() {
                 <div className="album-title-block">
                     <h1>{album.Title}</h1>
                     <div className="album-actions">
-                        <button className="add-participants-button" onClick={() => setIsParticipantsModalOpen(true)}>
-                            Add Participants +
-                        </button>
+                        {isParticipant && (
+                            <button className="add-participants-button" onClick={() => setIsParticipantsModalOpen(true)}>
+                                Add Participants +
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -230,22 +235,14 @@ function AlbumPage() {
                         <h3>Host</h3>
                         <div className="host-info">
                             {album.authorInfo.avatarUrl ? (
-                                <img
-                                    src={album.authorInfo.avatarUrl}
-                                    alt={album.authorInfo.username}
-                                    className="avatar-image large"
-                                />
+                                <img src={album.authorInfo.avatarUrl} alt={album.authorInfo.username} className="avatar-image large" />
                             ) : (
-                                <div className="avatar-initial large">
-                                    {album.authorInfo.username.charAt(0).toUpperCase()}
-                                </div>
+                                <div className="avatar-initial large">{album.authorInfo.username.charAt(0).toUpperCase()}</div>
                             )}
                             <span className="host-name">{album.authorInfo.username}</span>
                         </div>
 
-                        <p className="album-creation-date">
-                            Created on {new Date(album.createdAt).toLocaleDateString()}
-                        </p>
+                        <p className="album-creation-date">Created on {new Date(album.createdAt).toLocaleDateString()}</p>
                         {/* Participants List*/}
                         <div className="participants-section">
                             <h3>Participants</h3>
@@ -255,9 +252,7 @@ function AlbumPage() {
                                         {p.avatarUrl ? (
                                             <img src={p.avatarUrl} alt={p.username} className="avatar-image small" />
                                         ) : (
-                                            <div className="avatar-initial small">
-                                                {p.username.charAt(0).toUpperCase()}
-                                            </div>
+                                            <div className="avatar-initial small">{p.username.charAt(0).toUpperCase()}</div>
                                         )}
                                         <span>{p.username}</span>
                                     </Link>
@@ -278,9 +273,11 @@ function AlbumPage() {
                         />
                         <div className="photo-viewer-header">
                             <h3>Photos</h3>
-                            <button className="add-photo-button" onClick={() => fileInputRef.current.click()}>
-                                Add Photo +
-                            </button>
+                            {isParticipant && (
+                                <button className="add-photo-button" onClick={() => fileInputRef.current.click()}>
+                                    Add Photo(s) +
+                                </button>
+                            )}
                         </div>
                         {album.albumPosts && album.albumPosts.length > 0 ? (
                             <div className="photo-grid">
@@ -316,20 +313,13 @@ function AlbumPage() {
                                             <div className="comment-menu">
                                                 <button
                                                     className="comment-menu-button"
-                                                    onClick={() =>
-                                                        setOpenCommentMenu(
-                                                            openCommentMenu === comment._id ? null : comment._id
-                                                        )
-                                                    }
+                                                    onClick={() => setOpenCommentMenu(openCommentMenu === comment._id ? null : comment._id)}
                                                 >
                                                     &#x22EE;
                                                 </button>
                                                 {openCommentMenu === comment._id && (
                                                     <div className="comment-menu-dropdown">
-                                                        <button
-                                                            className="delete-comment-button"
-                                                            onClick={() => handleDeleteComment(comment._id)}
-                                                        >
+                                                        <button className="delete-comment-button" onClick={() => handleDeleteComment(comment._id)}>
                                                             Delete
                                                         </button>
                                                     </div>
@@ -360,12 +350,7 @@ function AlbumPage() {
                 <div className="form-group">
                     <label>Tag Friends</label>
                     <div className="user-search-container">
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search for users..."
-                        />
+                        <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search for users..." />
                         {searchResults.length > 0 && (
                             <div className="search-results">
                                 {searchResults.map((u) => (
@@ -381,11 +366,7 @@ function AlbumPage() {
                         {usersToAdd.map((u) => (
                             <span key={u.id} className="tagged-user-pill">
                                 {u.username}
-                                <button
-                                    type="button"
-                                    className="remove-tag-button"
-                                    onClick={() => handleRemoveTaggedUser(u)}
-                                >
+                                <button type="button" className="remove-tag-button" onClick={() => handleRemoveTaggedUser(u)}>
                                     &times;
                                 </button>
                             </span>
@@ -397,9 +378,7 @@ function AlbumPage() {
                 </button>
             </Modal>
 
-            {isViewerOpen && (
-                <ImageViewer images={album.albumPosts} startIndex={viewerStartIndex} onClose={closeImageViewer} />
-            )}
+            {isViewerOpen && <ImageViewer images={album.albumPosts} startIndex={viewerStartIndex} onClose={closeImageViewer} />}
         </div>
     );
 }
