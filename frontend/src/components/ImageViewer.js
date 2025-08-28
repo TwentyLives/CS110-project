@@ -1,5 +1,6 @@
 import React from "react";
 import "../styles/image-viewer.css";
+import { useEffect } from "react";
 
 // SVG Icons for the arrows
 const ChevronLeftIcon = () => (
@@ -28,6 +29,27 @@ function ImageViewer({ images, startIndex, onClose }) {
         const newIndex = isLastImage ? 0 : currentIndex + 1;
         setCurrentIndex(newIndex);
     };
+
+    // add event listener for key presses
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "ArrowLeft") {
+                goToPrevious();
+            } else if (e.key === "ArrowRight") {
+                goToNext();
+            } else if (e.key === "Escape") {
+                onClose();
+            }
+        };
+
+        // add listener when the component is open
+        window.addEventListener("keydown", handleKeyDown);
+
+        // clean up that removes event listener when component is closed
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [currentIndex]); // re-run the effect if currentIndex changes to ensure latest state
 
     return (
         <div className="image-viewer-overlay" onClick={onClose}>
