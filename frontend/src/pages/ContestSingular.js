@@ -151,22 +151,16 @@ export default function ContestPage() {
       });
 
       if (res.ok) {
-        setEntries((prev) =>
-          prev.map((e) =>
-            e.userId === entry.userId
-              ? {
-                ...e,
-                totalLikes: e.likedByCurrentUser ? e.totalLikes - 1 : e.totalLikes + 1,
-                likedByCurrentUser: !e.likedByCurrentUser,
-              }
-              : e
-          )
-        );
+        // Fetch updated entries from the server
+        const updatedContest = await fetch(`http://localhost:3002/contests/${contestId}`);
+        const data = await updatedContest.json();
+        setEntries(data.entries);
       }
     } catch (err) {
       console.error(err);
     }
   };
+
 
 
   const handlePostComment = async () => {

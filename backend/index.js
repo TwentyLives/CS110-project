@@ -54,214 +54,214 @@ const isAdmin = (req, res, next) => {
 
 // Follow a user
 app.post("/follow", async (req, res) => {
-    try {
-        const { userId, followId } = req.body;
+  try {
+    const { userId, followId } = req.body;
 
-        if (!ObjectId.isValid(userId) || !ObjectId.isValid(followId)) {
-            return res.status(400).json({ error: "Invalid user ID format" });
-        }
-
-        if (userId === followId) {
-            return res.status(400).json({ error: "You cannot follow yourself" });
-        }
-
-        const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
-        const userToFollow = await db.collection("users").findOne({ _id: new ObjectId(followId) });
-
-        if (!user || !userToFollow) {
-            return res.status(404).json({ error: "User not found" });
-        }
-
-        // Add followId to user's following list
-        await db
-            .collection("users")
-            .updateOne({ _id: new ObjectId(userId) }, { $addToSet: { following: new ObjectId(followId) } });
-
-        // Fetch updated following list
-        const updatedUser = await db
-            .collection("users")
-            .findOne({ _id: new ObjectId(userId) }, { projection: { following: 1 } });
-
-        const followingDetails = await db
-            .collection("users")
-            .find({ _id: { $in: updatedUser.following || [] } })
-            .project({ username: 1, avatarUrl: 1 })
-            .toArray();
-
-        res.status(200).json(
-            followingDetails.map((f) => ({
-                id: f._id.toString(),
-                name: f.username,
-                pfp: f.avatarUrl || null,
-            }))
-        );
-    } catch (error) {
-        console.error("Failed to follow user:", error);
-        res.status(500).json({ error: "Failed to follow user" });
+    if (!ObjectId.isValid(userId) || !ObjectId.isValid(followId)) {
+      return res.status(400).json({ error: "Invalid user ID format" });
     }
+
+    if (userId === followId) {
+      return res.status(400).json({ error: "You cannot follow yourself" });
+    }
+
+    const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+    const userToFollow = await db.collection("users").findOne({ _id: new ObjectId(followId) });
+
+    if (!user || !userToFollow) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Add followId to user's following list
+    await db
+      .collection("users")
+      .updateOne({ _id: new ObjectId(userId) }, { $addToSet: { following: new ObjectId(followId) } });
+
+    // Fetch updated following list
+    const updatedUser = await db
+      .collection("users")
+      .findOne({ _id: new ObjectId(userId) }, { projection: { following: 1 } });
+
+    const followingDetails = await db
+      .collection("users")
+      .find({ _id: { $in: updatedUser.following || [] } })
+      .project({ username: 1, avatarUrl: 1 })
+      .toArray();
+
+    res.status(200).json(
+      followingDetails.map((f) => ({
+        id: f._id.toString(),
+        name: f.username,
+        pfp: f.avatarUrl || null,
+      }))
+    );
+  } catch (error) {
+    console.error("Failed to follow user:", error);
+    res.status(500).json({ error: "Failed to follow user" });
+  }
 });
 
 // Get the list of users the current user is following
 app.get("/following/:userId", async (req, res) => {
-    try {
-        const { userId } = req.params;
+  try {
+    const { userId } = req.params;
 
-        if (!ObjectId.isValid(userId)) {
-            return res.status(400).json({ error: "Invalid user ID format" });
-        }
-
-        const user = await db
-            .collection("users")
-            .findOne({ _id: new ObjectId(userId) }, { projection: { following: 1 } });
-
-        if (!user) return res.status(404).json({ error: "User not found" });
-
-        const followingDetails = await db
-            .collection("users")
-            .find({ _id: { $in: user.following || [] } })
-            .project({ username: 1, avatarUrl: 1 })
-            .toArray();
-
-        res.json(
-            followingDetails.map((f) => ({
-                id: f._id.toString(),
-                name: f.username,
-                pfp: f.avatarUrl || null,
-            }))
-        );
-    } catch (error) {
-        console.error("Failed to fetch following:", error);
-        res.status(500).json({ error: "Failed to fetch following" });
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid user ID format" });
     }
+
+    const user = await db
+      .collection("users")
+      .findOne({ _id: new ObjectId(userId) }, { projection: { following: 1 } });
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const followingDetails = await db
+      .collection("users")
+      .find({ _id: { $in: user.following || [] } })
+      .project({ username: 1, avatarUrl: 1 })
+      .toArray();
+
+    res.json(
+      followingDetails.map((f) => ({
+        id: f._id.toString(),
+        name: f.username,
+        pfp: f.avatarUrl || null,
+      }))
+    );
+  } catch (error) {
+    console.error("Failed to fetch following:", error);
+    res.status(500).json({ error: "Failed to fetch following" });
+  }
 });
 
 // Get the list of users who are following this user
 app.get("/followers/:userId", async (req, res) => {
-    try {
-        const { userId } = req.params;
+  try {
+    const { userId } = req.params;
 
-        if (!ObjectId.isValid(userId)) {
-            return res.status(400).json({ error: "Invalid user ID format" });
-        }
-
-        const followers = await db
-            .collection("users")
-            .find({ following: new ObjectId(userId) })
-            .project({ username: 1, avatarUrl: 1 })
-            .toArray();
-
-        res.json(
-            followers.map((f) => ({
-                id: f._id.toString(),
-                name: f.username,
-                pfp: f.avatarUrl || null,
-            }))
-        );
-    } catch (error) {
-        console.error("Failed to fetch followers:", error);
-        res.status(500).json({ error: "Failed to fetch followers" });
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid user ID format" });
     }
+
+    const followers = await db
+      .collection("users")
+      .find({ following: new ObjectId(userId) })
+      .project({ username: 1, avatarUrl: 1 })
+      .toArray();
+
+    res.json(
+      followers.map((f) => ({
+        id: f._id.toString(),
+        name: f.username,
+        pfp: f.avatarUrl || null,
+      }))
+    );
+  } catch (error) {
+    console.error("Failed to fetch followers:", error);
+    res.status(500).json({ error: "Failed to fetch followers" });
+  }
 });
 
 app.get("/recommendations/:userId", async (req, res) => {
-    try {
-        const { userId } = req.params;
+  try {
+    const { userId } = req.params;
 
-        if (!ObjectId.isValid(userId)) {
-            return res.status(400).json({ error: "Invalid user ID format" });
-        }
-
-        const userObjectId = new ObjectId(userId);
-
-        const user = await db.collection("users").findOne({ _id: userObjectId }, { projection: { following: 1 } });
-
-        if (!user) return res.status(404).json({ error: "User not found" });
-
-        const userFollowingObjectIds = (user.following || []).map((fid) => new ObjectId(fid));
-
-        const friendsOfFriends = await db
-            .collection("users")
-            .find({ _id: { $in: userFollowingObjectIds } })
-            .project({ following: 1 })
-            .toArray();
-
-        let recommendationsSet = new Set();
-        friendsOfFriends.forEach((friend) => {
-            (friend.following || []).forEach((fid) => {
-                recommendationsSet.add(fid.toString());
-            });
-        });
-
-        recommendationsSet.delete(userId.toString());
-        userFollowingObjectIds.forEach((fid) => recommendationsSet.delete(fid.toString()));
-
-        const recommendationIds = Array.from(recommendationsSet).map((id) => new ObjectId(id));
-
-        if (recommendationIds.length === 0) return res.json([]);
-
-        const recommendedUsers = await db
-            .collection("users")
-            .find({ _id: { $in: recommendationIds } })
-            .project({ username: 1, avatarUrl: 1 })
-            .limit(10)
-            .toArray();
-
-        const formattedUsers = recommendedUsers.map((u) => ({
-            id: u._id.toString(),
-            name: u.username,
-            pfp: u.avatarUrl || null,
-        }));
-
-        res.json(formattedUsers);
-    } catch (error) {
-        console.error("Failed to get recommendations:", error);
-        res.status(500).json({ error: "Failed to get recommendations" });
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid user ID format" });
     }
+
+    const userObjectId = new ObjectId(userId);
+
+    const user = await db.collection("users").findOne({ _id: userObjectId }, { projection: { following: 1 } });
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const userFollowingObjectIds = (user.following || []).map((fid) => new ObjectId(fid));
+
+    const friendsOfFriends = await db
+      .collection("users")
+      .find({ _id: { $in: userFollowingObjectIds } })
+      .project({ following: 1 })
+      .toArray();
+
+    let recommendationsSet = new Set();
+    friendsOfFriends.forEach((friend) => {
+      (friend.following || []).forEach((fid) => {
+        recommendationsSet.add(fid.toString());
+      });
+    });
+
+    recommendationsSet.delete(userId.toString());
+    userFollowingObjectIds.forEach((fid) => recommendationsSet.delete(fid.toString()));
+
+    const recommendationIds = Array.from(recommendationsSet).map((id) => new ObjectId(id));
+
+    if (recommendationIds.length === 0) return res.json([]);
+
+    const recommendedUsers = await db
+      .collection("users")
+      .find({ _id: { $in: recommendationIds } })
+      .project({ username: 1, avatarUrl: 1 })
+      .limit(10)
+      .toArray();
+
+    const formattedUsers = recommendedUsers.map((u) => ({
+      id: u._id.toString(),
+      name: u.username,
+      pfp: u.avatarUrl || null,
+    }));
+
+    res.json(formattedUsers);
+  } catch (error) {
+    console.error("Failed to get recommendations:", error);
+    res.status(500).json({ error: "Failed to get recommendations" });
+  }
 });
 
 app.post("/unfollow", async (req, res) => {
-    try {
-        const { userId, unfollowId } = req.body;
+  try {
+    const { userId, unfollowId } = req.body;
 
-        if (!ObjectId.isValid(userId) || !ObjectId.isValid(unfollowId)) {
-            return res.status(400).json({ error: "Invalid user ID format" });
-        }
-
-        if (userId === unfollowId) {
-            return res.status(400).json({ error: "You cannot unfollow yourself" });
-        }
-
-        const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
-        if (!user) return res.status(404).json({ error: "User not found" });
-
-        await db
-            .collection("users")
-            .updateOne({ _id: new ObjectId(userId) }, { $pull: { following: new ObjectId(unfollowId) } });
-
-        res.status(200).json({ message: "Successfully unfollowed user" });
-    } catch (error) {
-        console.error("Failed to unfollow user:", error);
-        res.status(500).json({ error: "Failed to unfollow user" });
+    if (!ObjectId.isValid(userId) || !ObjectId.isValid(unfollowId)) {
+      return res.status(400).json({ error: "Invalid user ID format" });
     }
+
+    if (userId === unfollowId) {
+      return res.status(400).json({ error: "You cannot unfollow yourself" });
+    }
+
+    const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    await db
+      .collection("users")
+      .updateOne({ _id: new ObjectId(userId) }, { $pull: { following: new ObjectId(unfollowId) } });
+
+    res.status(200).json({ message: "Successfully unfollowed user" });
+  } catch (error) {
+    console.error("Failed to unfollow user:", error);
+    res.status(500).json({ error: "Failed to unfollow user" });
+  }
 });
 
 app.post("/remove", async (req, res) => {
-    try {
-        const { userId, removeId } = req.body;
+  try {
+    const { userId, removeId } = req.body;
 
-        if (!ObjectId.isValid(userId) || !ObjectId.isValid(removeId)) {
-            return res.status(400).json({ error: "Invalid user ID format" });
-        }
-
-        await db
-            .collection("users")
-            .updateOne({ _id: new ObjectId(removeId) }, { $pull: { following: new ObjectId(userId) } });
-
-        res.status(200).json({ message: "Follower removed" });
-    } catch (err) {
-        console.error("Failed to remove follower:", err);
-        res.status(500).json({ error: "Failed to remove follower" });
+    if (!ObjectId.isValid(userId) || !ObjectId.isValid(removeId)) {
+      return res.status(400).json({ error: "Invalid user ID format" });
     }
+
+    await db
+      .collection("users")
+      .updateOne({ _id: new ObjectId(removeId) }, { $pull: { following: new ObjectId(userId) } });
+
+    res.status(200).json({ message: "Follower removed" });
+  } catch (err) {
+    console.error("Failed to remove follower:", err);
+    res.status(500).json({ error: "Failed to remove follower" });
+  }
 });
 
 // Just some testing code I added that displays all users
@@ -294,25 +294,25 @@ app.post("/remove", async (req, res) => {
 
 // gets list of users that are following this user
 app.get("/followers/:userId", async (req, res) => {
-    try {
-        const { userId } = req.params;
+  try {
+    const { userId } = req.params;
 
-        if (!ObjectId.isValid(userId)) {
-            return res.status(400).json({ error: "Invalid user ID format" });
-        }
-
-        // find all users who have this userId in their following array
-        const followers = await db
-            .collection("users")
-            .find({ following: new ObjectId(userId) })
-            .project({ username: 1, avatarUrl: 1 })
-            .toArray();
-
-        res.json(followers);
-    } catch (error) {
-        console.error("Failed to fetch followers:", error);
-        res.status(500).json({ error: "Failed to fetch followers" });
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid user ID format" });
     }
+
+    // find all users who have this userId in their following array
+    const followers = await db
+      .collection("users")
+      .find({ following: new ObjectId(userId) })
+      .project({ username: 1, avatarUrl: 1 })
+      .toArray();
+
+    res.json(followers);
+  } catch (error) {
+    console.error("Failed to fetch followers:", error);
+    res.status(500).json({ error: "Failed to fetch followers" });
+  }
 });
 
 // admin routes
@@ -345,17 +345,17 @@ app.get("/admin/albums", isAdmin, async (req, res) => {
 
 // delete an album
 app.delete("/admin/albums/:albumId", isAdmin, async (req, res) => {
-    try {
-        const { albumId } = req.params;
-        // delete comments within the album
-        await db.collection("comments").deleteMany({ albumId: new ObjectId(albumId) });
+  try {
+    const { albumId } = req.params;
+    // delete comments within the album
+    await db.collection("comments").deleteMany({ albumId: new ObjectId(albumId) });
 
-        // delete the album itself
-        await db.collection("albums").deleteOne({ _id: new ObjectId(albumId) });
-        res.status(200).json({ message: "Album and its comments deleted successfully" });
-    } catch (error) {
-        res.status(500).json({ error: "Failed to delete album" });
-    }
+    // delete the album itself
+    await db.collection("albums").deleteOne({ _id: new ObjectId(albumId) });
+    res.status(200).json({ message: "Album and its comments deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete album" });
+  }
 });
 
 // delete a comment within an album
@@ -903,36 +903,6 @@ app.post("/contests/:contestId/upload", upload.single("image"), async (req, res)
   }
 });
 
-app.post("/contests/:contestId/entry/:userEntryId/like", async (req, res) => {
-  try {
-    const { contestId, userEntryId } = req.params;
-    const { userId } = req.body;
-
-    if (!ObjectId.isValid(contestId) || !ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: "Invalid IDs" });
-    }
-
-    const contest = await db.collection("contests").findOne({ _id: new ObjectId(contestId) });
-    if (!contest) return res.status(404).json({ error: "Contest not found" });
-
-    const entryIndex = contest.entries.findIndex(e => e.userId.equals(userEntryId));
-    if (entryIndex === -1) return res.status(404).json({ error: "Entry not found" });
-
-    const entry = contest.entries[entryIndex];
-    let update;
-    if (entry.likes.some(l => l.equals(userId))) {
-      update = { $pull: { [`entries.${entryIndex}.likes`]: new ObjectId(userId) } };
-    } else {
-      update = { $push: { [`entries.${entryIndex}.likes`]: new ObjectId(userId) } };
-    }
-
-    await db.collection("contests").updateOne({ _id: new ObjectId(contestId) }, update);
-    res.json({ message: "Like toggled successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to toggle like" });
-  }
-});
 
 app.get("/contests", async (req, res) => {
   try {
@@ -1043,5 +1013,46 @@ app.get("/comments/contest/:contestId", async (req, res) => {
   } catch (error) {
     console.error("Failed to fetch contest comments:", error);
     res.status(500).json({ error: "Failed to fetch contest comments" });
+  }
+});
+
+app.post("/contests/:contestId/participants", async (req, res) => {
+  try {
+    const { contestId } = req.params;
+    const { userIdsToAdd } = req.body;
+
+    if (!ObjectId.isValid(contestId)) {
+      return res.status(400).json({ error: "Invalid Contest ID" });
+    }
+
+    const usersToAdd = await db
+      .collection("users")
+      .find({ _id: { $in: userIdsToAdd.map(id => new ObjectId(id)) } })
+      .project({ username: 1, avatarUrl: 1 })
+      .toArray();
+
+    const contest = await db.collection("contests").findOne({ _id: new ObjectId(contestId) });
+    if (!contest) return res.status(404).json({ error: "Contest not found" });
+
+    const existingUsernames = (contest.participantInfo || []).map(u => u.username);
+    const newParticipants = usersToAdd
+      .filter(u => !existingUsernames.includes(u.username))
+      .map(u => ({ username: u.username, avatarUrl: u.avatarUrl || "" }));
+
+    if (newParticipants.length === 0) {
+      return res.status(200).json({ message: "Participants already in contest." });
+    }
+
+    await db.collection("contests").updateOne(
+      { _id: new ObjectId(contestId) },
+      { $addToSet: { participantInfo: { $each: newParticipants } } }
+    );
+
+    const updatedContest = await db.collection("contests").findOne({ _id: new ObjectId(contestId) });
+    res.status(200).json(updatedContest);
+
+  } catch (error) {
+    console.error("Failed to add participants:", error);
+    res.status(500).json({ error: "Failed to add participants" });
   }
 });
