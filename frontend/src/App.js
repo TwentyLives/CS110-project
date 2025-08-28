@@ -13,6 +13,7 @@ import Friends from './pages/Friends';
 import Contests from './pages/Contest';
 import ContestSingular from './pages/ContestSingular';
 
+
 const PrivateRoute = ({ children }) => {
     const token = localStorage.getItem("eventSnapUser");
     const adminKey = sessionStorage.getItem("adminKey");
@@ -77,7 +78,14 @@ function App() {
                 />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/friends" element={<Friends />} />
+                <Route
+                    path="/friends"
+                    element={
+                        <PrivateRoute>
+                            <Friends />
+                        </PrivateRoute>
+                    }
+                />
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route
                     path="/admin/dashboard"
