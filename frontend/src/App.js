@@ -9,16 +9,23 @@ import AlbumPage from "./pages/AlbumPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
-import Friends from './pages/Friends';
-import Contests from './pages/Contest';
-import ContestSingular from './pages/ContestSingular';
-
+import Friends from "./pages/Friends";
+import Contests from "./pages/Contest";
+import ContestSingular from "./pages/ContestSingular";
+import { useAuth } from "./context/AuthContext";
 
 const PrivateRoute = ({ children }) => {
+    const { user } = useAuth();
     const token = localStorage.getItem("eventSnapUser");
     const adminKey = sessionStorage.getItem("adminKey");
     console.log("Ran private route!");
     console.log(children.type);
+
+    // extra authentication to fix a rare bug
+    if (!user) {
+        return <Navigate to="/login" />;
+    }
+
     // only allow admin to access AlbumPage and no other pages that use private route
     if (token || (adminKey && children.type.name === "AlbumPage")) {
         return children;
