@@ -9,7 +9,10 @@ import AlbumPage from "./pages/AlbumPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
-import Friends from "./pages/Friends";
+import Friends from './pages/Friends';
+import Contests from './pages/Contest';
+import ContestSingular from './pages/ContestSingular';
+
 
 const PrivateRoute = ({ children }) => {
     const token = localStorage.getItem("eventSnapUser");
@@ -55,6 +58,22 @@ function App() {
                     element={
                         <PrivateRoute>
                             <ProfilePage />
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/contests"
+                    element={
+                        <PrivateRoute>
+                            <Contests />
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/contests/:contestId"
+                    element={
+                        <PrivateRoute>
+                            <ContestSingular />
                         </PrivateRoute>
                     }
                 />
