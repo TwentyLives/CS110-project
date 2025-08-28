@@ -21,11 +21,6 @@ const PrivateRoute = ({ children }) => {
     console.log("Ran private route!");
     console.log(children.type);
 
-    // extra authentication to fix a rare bug
-    if (!user) {
-        return <Navigate to="/login" />;
-    }
-
     // only allow admin to access AlbumPage and no other pages that use private route
     if (token || (adminKey && children.type.name === "AlbumPage")) {
         return children;
