@@ -613,7 +613,7 @@ app.post("/albums/:albumID/upload", upload.single("image"), async (req, res) => 
         const filePath = req.file.path;
 
         // find the album
-        const album = await db.collection("albums").findOne({ _id: new ObjectId(albumId) });
+        const album = await db.collection("albums").findOne({ _id: new ObjectId(albumID) });
 
         // check if the user trying to upload is a participant
         const isParticipant = album.participants.some((p) => p.toString() === userId);
