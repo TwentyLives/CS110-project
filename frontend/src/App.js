@@ -41,6 +41,7 @@ function App() {
                         </PrivateRoute>
                     }
                 />
+                <Route path="/home" element={<Navigate to="/" />} />
                 <Route
                     path="/album/:albumId"
                     element={
@@ -67,6 +68,7 @@ function App() {
                         </PrivateRoute>
                     }
                 />
+                <Route path="/admin" element={<Navigate to={"/admin/login"} />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route
                     path="/admin/dashboard"
